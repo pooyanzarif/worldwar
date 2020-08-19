@@ -32,6 +32,30 @@ By clicking to top10 button, you will see top10 superpowers.
 - On the second line write your Telegram Userid.(This id will become admin) Yor userid is a number like this:  87251219
 - Save it as 'token.txt'.
 
+
+### Configuration
+Before run the game configure configuration.py file
+database parameters:
+ Parameter | Value |
+| ------ | ------ |
+| host | YOUR HOST |
+| username  | DATABASE USER |
+| password | YOUR PASSWORD |
+| database | YOUR DATABASE NAME |
+
+For production environments, go to configuration.py
+Parameter | Value |
+| ------ | ------ |
+| DEBUG_MODE | False |
+
+Telegram has been filtered in some countries. If so set the proxy in configuration.py
+
+| Parameter | Value |
+| ------ | ------ |
+| USE_PROXY | True |
+| PROXY_URL =  | IP:Port (eg: http://127.0.0.1:8118) |
+
+
 ### run
 ```sh
 $ python3 telegram.py
@@ -52,32 +76,13 @@ In this game we have used
 * [] - Mysql
 * [] - Python 3.8
 * [] - Telegram
+
 ###  For the next commit we are going to use:
-* [.js] - FLASK
-* [.js] - Jinja2
+* [] - FLASK
+* [] - Jinja2
 * [] - BluePrint
 * [] - Gentelella
 
 
-### Configuration
-Before run the game configure configuration.py file
-database parameters:
- Parameter | Value |
-| ------ | ------ |
-| host | YOUR HOST |
-| username  | DATABASE USER |
-| password | YOUR PASSWORD |
-| database | YOUR DATABASE NAME |
-
-For production environments, go to configuration.py and   Set DEBUG_MODE to False
-Parameter | Value |
-| ------ | ------ |
-| DEBUG_MODE | False |
-Telegram has been filtered in some countries. If so set the proxy in configuration.py
-
-| Parameter | Value |
-| ------ | ------ |
-| USE_PROXY | True |
-| PROXY_URL =  | IP:Port (eg: http://127.0.0.1:8118) |
 
 
