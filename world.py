@@ -34,7 +34,6 @@ class tworld:
             sql = "select * from village where vid = %d"%(vid)
         elif userid != None:
             sql = "select * from village where userid = %d"%(userid)
-        # with self.db:
         c = self.db.execute(sql)
         if c:
             village = self.db.fetchone()
@@ -56,7 +55,6 @@ class tworld:
  # ---------------------------------------------------------------------------------------------------------------------
     # This function Fetches all of village from database and stores in a list in world class
     def fetch_all(self):
-        # with self.db:
         self.db.execute("select * from village")
         villages = self.db.fetchall()
         for village in villages:
@@ -74,7 +72,6 @@ class tworld:
     # ------------------------------------------------------------------------------------------------------------------
     # this function writes user's messages in database
     def log_message(self,from_id,to_id,message,msg_admin=0):
-        # with self.db:
         sql = "insert into messages (msg_from,msg_to,msg_message,msg_admin) values (%s,%s,'%s',%s)"%(from_id,to_id,message,msg_admin)
         self.db.execute(sql)
         self.db.close()
@@ -92,7 +89,6 @@ class tworld:
         weaponlist = weaponlist[:-1]  # to remove last camma (,)
         sql = "INSERT INTO weapons (vid,wid,wcount) values \n %s ON DUPLICATE KEY UPDATE wcount= VALUES(wcount) ;" % (
             weaponlist)
-        # with self.db:
         self.db.execute(sql)
         self.db.close()
         village.weapon_modified = False
@@ -137,7 +133,6 @@ class tworld:
                   village.vid
               )
         try:
-            # with self.db:
             self.db.execute(sql)
             village.dirty = False
             self.db.close()
@@ -251,8 +246,8 @@ class tworld:
             tired,
             last_visit
             ) values( % s, '%s', '%s', '%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s' , %s, %s ,%s,%s,'%s');""" % v
-        # try:
-        # with self.db:
+
+
         self.db.execute(sql)
         is_inserted = self.db.cursor.rowcount
         if is_inserted:
@@ -268,11 +263,6 @@ class tworld:
             return True
         else:
             return False
-            # except:
-            #     self.db.rollback()
-            #     print("Roll back")
-            #     return False
-
     # ------------------------------------------------------------------------------------------------------------------
     # This function first searches in world by Telegram userid.users list. if village not found. lookit yp from database and append to world.users.
 
@@ -310,7 +300,6 @@ class tworld:
    # -------------------------------------------------------------------------------------------------------------------
    #  This function display top villages depends on scores
     def top10(self,user_id):
-        # with self.db:
         self.db.execute("select vid,name,score from village order by score DESC limit 10")
         list = self.db.fetchall()
         self.db.close()
@@ -354,4 +343,3 @@ class tworld:
         except:
             return 0
 
-#-----------------------------------------------------------------------------------------------------------------------

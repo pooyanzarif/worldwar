@@ -151,7 +151,6 @@ class tvillage:
                   self.home_capacity,
                   self.vid
               )
-        # with self.db:
         self.db.execute(sql)
         self.db.close()
         self.dirty = False
@@ -198,7 +197,6 @@ class tvillage:
         weaponlist = weaponlist[:-1]  # to remove last camma (,)
         sql = "INSERT INTO weapons (vid,wid,wcount) values \n %s ON DUPLICATE KEY UPDATE wcount= VALUES(wcount) ;" % (
             weaponlist)
-        # with self.db:
         self.db.execute(sql)
         self.db.close()
         self.weapon_modified = False
@@ -633,7 +631,6 @@ class tvillage:
     # This function write all activities into database
     def log(self,*action):
         sql = "insert into log (userid,action) VALUES(%d,JSON_OBJECT %s)"%(self.userid,action)
-        # with self.db:
         try:
             self.db.execute(sql)
             self.db.close()
