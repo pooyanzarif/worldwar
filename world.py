@@ -274,54 +274,6 @@ class tworld:
             #     return False
 
     # ------------------------------------------------------------------------------------------------------------------
-    # def suggest_opponent(self,userid):
-    #     v = self.find_village(userid)
-    #     sql = "select vid,userid,name,race, ABS(power_defence-%d) as nearest from village where shield = 0 and vid<>%d and disabled=FALSE order by nearest limit %d"%(v.power_attack,v.vid,OPPONENT_COUNT)
-    #     self.db.execute(sql)
-    #     villages = self.db.fetchall()
-    #     self.db.close()
-    #     result = ""
-    #     for v in villages:
-    #         uid = (v['userid'])
-    #         uid = KEY - uid  # We subtrace Telegram user id form KEY to encode user_id
-    #         name = v['name']
-    #         race = v['race']
-    #         result += u"%s (%s) /profile%d\n" % (name, race, uid)
-    #     return result
-    # ------------------------------------------------------------------------------------------------------------------
-    # def suggest_opponent_inmemory_old(self, userid):
-    #     result = SUGGEST_ENEMY
-    #     list = filter(lambda x:x['village'].shield==0 , self.users)
-    #     list = sorted(list, key = lambda x:x['village'].power_attack)
-    #     i=my_pos= -1
-    #     for user in list:
-    #         if user['userid'] == userid:    # your own village must be removed from attack list
-    #             my_pos = i
-    #             break
-    #         i+=1
-    #
-    #     begin =  max(0,my_pos-OPPONENT_COUNT/2)
-    #     end = min (len(list),my_pos+OPPONENT_COUNT/2)
-    #     list = list [begin:end]
-    #     for user in list:
-    #         if user['userid'] == userid:    # your own village must be removed from attack list
-    #             continue
-    #         if user['village'].shield > 0:  # shield remove village from suggestion list
-    #             continue
-    #         uid = (user['userid'])
-    #         uid = KEY - uid  # We subtrace Telegram user id form KEY to encode user_id
-    #         name = user['village'].name
-    #         race = user['village'].race
-    #         result += u"%s (%s) /profile%d\n" % (name, race,uid)
-    #     return result
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # def find_opponent(self, userid):
-    #     opponent_list = filter(lambda x: x['userid'] != userid, self.users)
-    #     opponent = choice(opponent_list)
-    #     return opponent['village']
-
-    # ------------------------------------------------------------------------------------------------------------------
     # This function first searches in world by Telegram userid.users list. if village not found. lookit yp from database and append to world.users.
 
     def find_village(self, userid):
@@ -388,31 +340,6 @@ class tworld:
             if v.era == 0:
                 v.era = 1
         return
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # def check_operation(self): # must delete
-    #     return
-    #     results = []
-    #     for user in self.users:
-    #         v = user['village']
-    #         v.operation_time -= 1
-    #         result = -1
-    #         if v.operation_time == 0:
-    #             if v.operation == 'worker':
-    #                 result = v.worker_preparation(1)
-    #             elif v.operation == 'farm':
-    #                 result = v.farm_preparation(1)
-    #             elif v.operation == 'workshop':
-    #                 result = v.workshop_preparation(1)
-    #             elif v.operation[:6] == 'weapon':
-    #                 wid = int(v.operation[7:])
-    #                 result = v.weapon_making(wid, 1)
-    #             elif v.operation[:6] == 'attack':
-    #                 enemy = world.find_opponent(0)
-    #                 result = v.attack(enemy, 1)
-    #             v.operation = ''
-    #             results.append((v.userid, result))
-    #     return results
 
     # ------------------------------------------------------------------------------------------------------------------
     #  This function uses for admin panel. By this function admin can add , subtract or update village properties such as (gold, food, wood ,...)
