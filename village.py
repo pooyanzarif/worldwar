@@ -510,6 +510,11 @@ class tvillage:
             wood = int(enemy.wood * WAR_COMPENSATION)
             food = int(enemy.food * WAR_COMPENSATION)
 
+            # We do not give compendsation to winner if looser has less than default
+            if (enemy.food-food)<=DEFAULTS['food']: food=0
+            if (enemy.wood-wood)<=DEFAULTS['wood']: wood=0
+            if (enemy.gold-gold)<=DEFAULTS['gold']: gold=0
+
             self.gold += gold
             self.wood += wood
             self.food += food
