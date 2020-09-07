@@ -17,6 +17,7 @@ class tworld:
     def __init__(self, config):
         self._config=config
         self.db = tdb(config)
+        self.fetch_busy_villages()  #This function loads villages which has an operation to do.
     # ------------------------------------------------------------------------------------------------------------------
     def is_exist(self,userid):
         sql = "select count(*) as N from village where userid = %d" % (userid)
@@ -52,12 +53,30 @@ class tworld:
         else:
             self.db.close()
             raise LookupError
- # ---------------------------------------------------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------------------------------------------------
     # This function Fetches all of village from database and stores in a list in world class
-    def fetch_all(self):
-        self.db.execute("select * from village")
+    # def fetch_all(self):
+    #     self.db.execute("select * from village")
+    #     villages = self.db.fetchall()
+    #     for village in villages:
+    #         village['fa'] = 0
+    #         self.db.execute("select * from weapons where vid = %i" % village['vid'])
+    #         weapons = self.db.fetchall()
+    #         w = []
+    #         for weapon in weapons:
+    #             w.append({'wid': weapon['wid'], 'count': weapon['wcount']})
+    #         village['weapons'] = w
+    #         user = {'userid': village['userid'], 'village': tvillage(self._config,village)}  # in this line we create village for each user
+    #     self.users.append(user)
+    #     self.db.close()
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Sometimes server stops while some villages are doing something.(e.g creating a worker). So This function load Those villages that have an operation to do.
+    def fetch_busy_villages(self):
+        self.db.execute("select * from village where operation <> '' ")
         villages = self.db.fetchall()
         for village in villages:
+            print("I am loading: %s"%(village['name']))
             village['fa'] = 0
             self.db.execute("select * from weapons where vid = %i" % village['vid'])
             weapons = self.db.fetchall()
@@ -65,9 +84,11 @@ class tworld:
             for weapon in weapons:
                 w.append({'wid': weapon['wid'], 'count': weapon['wcount']})
             village['weapons'] = w
-            user = {'userid': village['userid'], 'village': tvillage(tdb(self._config),village)}  # in this line we create village for each user
+            user = {'userid': village['userid'],
+                    'village': tvillage(self._config, village)}  # in this line we create village for each user
             self.users.append(user)
-            self.db.close()
+
+        self.db.close()
 
     # ------------------------------------------------------------------------------------------------------------------
     # this function writes user's messages in database
