@@ -76,7 +76,6 @@ class tworld:
         self.db.execute("select * from village where operation <> '' ")
         villages = self.db.fetchall()
         for village in villages:
-            print("I am loading: %s"%(village['name']))
             village['fa'] = 0
             self.db.execute("select * from weapons where vid = %i" % village['vid'])
             weapons = self.db.fetchall()
@@ -87,7 +86,7 @@ class tworld:
             user = {'userid': village['userid'],
                     'village': tvillage(self._config, village)}  # in this line we create village for each user
             self.users.append(user)
-
+            print("loading "+village['name'])
         self.db.close()
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -114,53 +113,6 @@ class tworld:
         self.db.close()
         village.weapon_modified = False
         return True
-
-    # ------------------------------------------------------------------------------------------------------------------
-    # This function writes a village properties into database.
-    def update(self,village):
-        if not village.dirty:  #if nothing has changed ,  do not save to database
-            return
-        self.update_weapons(village)
-        sql = "update village set name='%s', score= %i , food = %i, gold = %i, wood = %i, farm_capacity = %i, farm_unit = %i,worker= %i ,worker_randeman = %f," \
-              " soldier_skill = %f, food_price = %f, wood_price = %f, era= %i , race = '%s',operation= '%s' ,operation_time = %i , shield = %i ,fast = %i , tired = %i ," \
-              "power_attack = %i ,power_defence = %i  ,username= '%s' , first_name= '%s' , last_name = '%s' , last_visit='%s' , home= %i, home_capacity= %i  where vid= %i;" % (
-                  village.name,
-                  village.score,
-                  village.food,
-                  village.gold,
-                  village.wood,
-                  village.farm_capacity,
-                  village.farm_unit,
-                  village.worker,
-                  village.worker_randeman,
-                  village.soldier_skill,
-                  village.food_price,
-                  village.wood_price,
-                  village.era,
-                  village.race,
-                  village.operation,
-                  village.operation_time,
-                  village.shield,
-                  village.fast,
-                  village.tired,
-                  village.power_attack,
-                  village.power_defence,
-                  village.username,
-                  village.first_name,
-                  village.last_name,
-                  str(datetime.datetime.now()),
-                  village.home,
-                  village.home_capacity,
-                  village.vid
-              )
-        try:
-            self.db.execute(sql)
-            village.dirty = False
-            self.db.close()
-        except Exception as e :
-            print( "TYPE: ",type(e))
-            print("ARGS: ",e.args)
-
 
     # ------------------------------------------------------------------------------------------------------------------
     # This function write all changes of villages into database.
@@ -208,9 +160,9 @@ class tworld:
         village['operation'] = ''
         village['operation_time'] = 0
         village['last_visit'] = datetime.datetime.now()
-        village['shield'] = SHIELD_TIME
+        village['shield'] = datetime.datetime.now() + datetime.timedelta(seconds=SHIELD_TIME)      # give  sometime to New village
         village['fast'] = 0
-        village['tired'] = 0
+        village['tired'] = datetime.datetime.now()
         village['fa'] = 1
         v = (village['userid'],
              village['username'],
@@ -266,7 +218,7 @@ class tworld:
             `fast`,
             tired,
             last_visit
-            ) values( % s, '%s', '%s', '%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s' , %s, %s ,%s,%s,'%s');""" % v
+            ) values( % s, '%s', '%s', '%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '%s' , %s, %s ,%s,'%s','%s');""" % v
 
 
         self.db.execute(sql)
@@ -292,13 +244,15 @@ class tworld:
         if user:
             v = user[0]['village']
             v.calc_farming_eating_wooding()
-            self.update(v)
+            v.update()
+            # self.update(v)
             return v
         else:
             try:
                 v = self.fetch_one(userid = userid)
                 v.calc_farming_eating_wooding()
-                self.update(v)
+                v.update()
+                # self.update(v)
                 return v
             except LookupError as e:
                 raise LookupError
@@ -310,12 +264,14 @@ class tworld:
         if user:
             v = user[0]['village']
             v.calc_farming_eating_wooding()
-            self.update(v)
+            v.update()
+            # self.update(v)
             return v
         else:
             v = self.fetch_one(vid = vid)
             v.calc_farming_eating_wooding()
-            self.update(v)
+            v.update()
+            # self.update(v)
             return v
 
    # -------------------------------------------------------------------------------------------------------------------

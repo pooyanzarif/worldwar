@@ -59,7 +59,7 @@ CREATE TABLE `log` (
   `action` json DEFAULT NULL,
   `action_date` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`log_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=172 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=615 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `messages` */
 
@@ -73,7 +73,7 @@ CREATE TABLE `messages` (
   `msg_message` varchar(255) NOT NULL,
   `msg_admin` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`msg_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=127 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=128 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `village` */
 
@@ -105,8 +105,8 @@ CREATE TABLE `village` (
   `power_defence` int NOT NULL DEFAULT '0',
   `operation` varchar(45) DEFAULT '',
   `operation_time` int DEFAULT '0',
-  `tired` int DEFAULT '0',
-  `shield` int DEFAULT '0',
+  `tired` datetime DEFAULT CURRENT_TIMESTAMP,
+  `shield` datetime DEFAULT CURRENT_TIMESTAMP,
   `fast` tinyint NOT NULL DEFAULT '0',
   `create_date` datetime DEFAULT CURRENT_TIMESTAMP,
   `last_visit` datetime DEFAULT CURRENT_TIMESTAMP,
@@ -115,7 +115,7 @@ CREATE TABLE `village` (
   PRIMARY KEY (`vid`),
   UNIQUE KEY `vid_UNIQUE` (`vid`),
   UNIQUE KEY `userid` (`userid`)
-) ENGINE=InnoDB AUTO_INCREMENT=227 DEFAULT CHARSET=utf8 DELAY_KEY_WRITE=1 COMMENT='village';
+) ENGINE=InnoDB AUTO_INCREMENT=229 DEFAULT CHARSET=utf8 DELAY_KEY_WRITE=1 COMMENT='village';
 
 /*Table structure for table `weapons` */
 

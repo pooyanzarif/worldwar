@@ -40,7 +40,7 @@ def create(user_id,username='',first_name='',last_name='', inviter=0):
         sendMessage(user_id, ALREADY_CREATED)
         return False
     result= world.create_village(user_id,username,first_name,last_name, inviter)
-    # world.update_all()
+
     if result:
         p = open(picture_directory + 'village.jpg', 'rb')
         sendMessage(user_id, VILLAGE_CREATED)
@@ -358,7 +358,7 @@ def on_callback_query(msg):
         sendMessage(user_id,MESSAGES[result])
     elif command[:8]=='doattack':
         try:
-            if v.tired != 0:
+            if datetime.datetime.now()<= v.tired:
                 sendMessage(user_id, TIRED)
             else:
                 enemy_id=int(command[9:])
@@ -463,45 +463,45 @@ def admin_commands():
 def check_operation():
         for user in world.users:
             v=user['village']
-            if v.tired>0:
-                v.tired-=1
-            if v.shield>0:
-                v.shield-=1
             if v.operation=='':
                 continue
 
             v.operation_time -= 1
+
             if v.operation_time <= 0:
-                if v.operation=='worker':
-                    result = v. worker_preparation(1)
-                elif v.operation=='farm':
-                    result = v.farm_preparation(1)
-                elif v.operation == 'home':
-                    result = v. home_building(1)
-                elif v.operation=='workshop':
-                    result = v.workshop_preparation(1)
-                elif v.operation[:6]=='weapon':
-                    wid=int(v.operation[7:])
-                    result = v.weapon_making(wid,1)
-                elif v.operation[:6]=='attack':
-                    enemyid = int(v.operation[7:])
-                    enemy = world.find_village(enemyid)
-                    if enemy==False:
-                        continue
-                    result =  v.attack(enemy,1)
-                    v.operation = ''
-                    v.operation_time=0
-                    sendMessage(v.userid, result[0], reply_markup=attack_rersult_menu_inline(enemy.userid))
-                    # if randint(1,10) == 1:
-                    #     print "video Sent"
-                    #     sendvideo(v.userid)
-                    sendMessage(enemy.userid, result[1], reply_markup=attack_rersult_menu_inline(v.userid))
-                    continue
                 try:
+                    if v.operation=='worker':
+                        result = v.worker_preparation(1)
+                    elif v.operation=='farm':
+                        result = v.farm_preparation(1)
+                    elif v.operation == 'home':
+                        result = v.home_building(1)
+                    elif v.operation=='workshop':
+                        result = v.workshop_preparation(1)
+                    elif v.operation[:6]=='weapon':
+                        wid=int(v.operation[7:])
+                        result = v.weapon_making(wid,1)
+                    elif v.operation[:6]=='attack':
+                        enemyid = int(v.operation[7:])
+                        enemy = world.find_village(enemyid)
+                        if enemy==False:
+                            continue
+                        result = v.attack(enemy,1)
+
+                        sendMessage(v.userid, result[0], reply_markup=attack_rersult_menu_inline(enemy.userid))
+                        # if randint(1,10) == 1:
+                        #     print "video Sent"
+                        #     sendvideo(v.userid)
+                        sendMessage(enemy.userid, result[1], reply_markup=attack_rersult_menu_inline(v.userid))
+                        continue
+
                     sendMessage(v.userid, MESSAGES[result])
                 except:
-                    pass
-                v.operation=''
+                    print("Error while doing operation %s for village %s"%(v.operation,v.name))
+                    v.dirty = True
+                    v.update()
+
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -545,6 +545,7 @@ if __name__ == '__main__':
 
     bot = telepot.Bot(TOKEN)
 
+
     # We create one instance of world which contains villages
     world = tworld(DBCONFIG)
 
@@ -556,12 +557,15 @@ if __name__ == '__main__':
         SleepTime=1
 
     while 1:
-        time.sleep(SleepTime)
+        # time.sleep(SleepTime)
+        time.sleep(1)
         timeslice=(timeslice+1)%6
         if DEBUG_MODE or timeslice==0:
             if timeslice==0:
                 check_operation()
                 admin_commands()
+
+
 
 
 

@@ -59,7 +59,7 @@ class tvillage:
     operation = ''          # each operation a user does.  first it is inserts in this property and after operation_time is executed.
     operation_time = 0      # how much operation should be wait to be executed.
     weapon_modified = False # True if number of weapons changes.
-    tired = 0               # after attack this property set by TIRED_TIME. and you can not attack again until this become zero again
+    tired = 0               # after attack this property set by TIRED_TIME seconds. and you can not attack again until TIRED_TIME Seconds
     shield = 0              # if not zero, you have a shield and nobody can attack you. Until this becomes zero again.
     fast = 0                # if not zero, operations is executed immediately and user does not have to wait. after executing of each operation fast decrease one unit  and if this become zero user has to wait again.
     last_visit = 0          # date and time of last activity
@@ -115,12 +115,11 @@ class tvillage:
     # ------------------------------------------------------------------------------------------------------------------
     # This function writes village data on database
     def update(self):
-        return
         if not self.dirty:  #if nothing has changed ,  do not save to database
             return
         self.update_weapons()
         sql = "update village set name='%s', score= %i , food = %i, gold = %i, wood = %i, farm_capacity = %i, farm_unit = %i,worker= %i ,worker_randeman = %f," \
-              " soldier_skill = %f, food_price = %f, wood_price = %f, era= %i , race = '%s',operation= '%s' ,operation_time = %i , shield = %i ,fast = %i , tired = %i ," \
+              " soldier_skill = %f, food_price = %f, wood_price = %f, era= %i , race = '%s',operation= '%s' ,operation_time = %i , shield = '%s' , fast = %i , tired = '%s' ," \
               "power_attack = %i ,power_defence = %i  ,username= '%s' , first_name= '%s' , last_name = '%s' , last_visit='%s' , home= %i, home_capacity= %i  where vid= %i;" % (
                   self.name,
                   self.score,
@@ -138,9 +137,9 @@ class tvillage:
                   self.race,
                   self.operation,
                   self.operation_time,
-                  self.shield,
+                  str(self.shield),
                   self.fast,
-                  self.tired,
+                  str(self.tired),
                   self.power_attack,
                   self.power_defence,
                   self.username,
@@ -158,7 +157,7 @@ class tvillage:
     # ------------------------------------------------------------------------------------------------------------------
     # This function suggest opponent  for attack. It chooses villages which their defense powers is near to your attack power.
     def suggest_opponent(self):
-        sql = "select vid,userid,name,race, ABS(power_defence-%d) as nearest from village where shield = 0 and vid<>%d  and disabled=FALSE order by nearest limit %d" % (
+        sql = "select vid,userid,name,race, ABS(power_defence-%d) as nearest from village where shield < NOW() and vid<>%d  and disabled=FALSE order by nearest limit %d" % (
         self.power_attack, self.vid,OPPONENT_COUNT)
         self.db.execute(sql)
         villages = self.db.fetchall()
@@ -266,6 +265,8 @@ class tvillage:
         else:  # execute ==1
             self.worker += 1
             self.score += SCORES['worker']
+            self.operation=''
+            self.operation_time=0
             self.log('worker',1)
             self.dirty = True
             self.update()
@@ -289,6 +290,8 @@ class tvillage:
             self.farm_capacity += self.farm_unit
             self.farm_empty = False
             self.score += SCORES['farm']
+            self.operation = ''
+            self.operation_time = 0
             self.log('farm',int(self.farm_unit))
             self.dirty = True
             self.update()
@@ -398,6 +401,8 @@ class tvillage:
             self.weapon_modified = True
             self.power_attack = self.weapon_power('attack')
             self.power_defence = self.weapon_power('defence')
+            self.operation = ''
+            self.operation_time = 0
             self.log('weapon',int(weapon_id))
             self.dirty = True
             return SUCCESSFULL
@@ -418,6 +423,8 @@ class tvillage:
                 return result
         else: #execute == 1
             self.home += self.home_capacity
+            self.operation = ''
+            self.operation_time = 0
             self.dirty = True
             self.log('home',1)
             self.update()
@@ -492,7 +499,7 @@ class tvillage:
             my_power=1  #power at least is 1 beacaues if it is zero expression "diff/mypower" raised an exception devision by zero
         # if not self.weapons:
         #     return (RESOURCE_IS_NOT_ENOUGH, "")
-        self.tired = TIRED_TIME
+        self.tired = datetime.datetime.now()+datetime.timedelta(seconds=TIRED_TIME)     # Winner has gotten tired for TIRED_TIME seconds and can not attack until TIRED_TIME seconds.
         idle = enemy.idle_factor()
         enemy_power = randint(80, 120) / 100.0 * enemy.power_defence
         enemy_power -= idle * enemy_power   # reduce enemy power according to idle hour factor
@@ -531,7 +538,7 @@ class tvillage:
             enemy.wood -= wood
             enemy.food -= food
             enemy.worker -= int(enemy.worker * WAR_COMPENSATION)
-            enemy.shield = SHIELD_TIME      # give the looser time to recover himself
+            enemy.shield = datetime.datetime.now() + datetime.timedelta(seconds=SHIELD_TIME)      # give the looser time to recover himself
             chance = diff / my_power
 
             enemy_broken_weapon_count = enemy.remove_weapon(chance)
@@ -549,8 +556,13 @@ class tvillage:
             result = (YOU_DRAW, YOU_DRAW)
             self.log('attackto', enemy.userid, 'result', 'draw', 'gold', 0, 'wood', 0, 'food', 0,
                      'mybrokenweapon', 0, 'enemybrokenweapon', 0)
+
+        self.operation = ''
+        self.operation_time = 0
         self.dirty = True
         self.update()
+        enemy.dirty = True
+        enemy.update()
         return result
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -599,6 +611,12 @@ class tvillage:
     # ------------------------------------------------------------------------------------------------------------------
     # This function shows village properties to user
     def status(self):
+        if self.shield > datetime.datetime.now():
+            shield_time_remain=str((self.shield- datetime.datetime.now()).seconds)
+        else:
+            shield_time_remain='0'# if shield time is earlier than now we set  it to Zero.
+
+
         wst = ""
         st = ''
         for w in self.weapons:
@@ -606,7 +624,7 @@ class tvillage:
             wst += u"      %s:%i\n" % (weapon['title'], w['count'])
 
         st += STATUS % (
-            self.name, self.era,self.home/self.home_capacity,self.home_capacity, self.food, self.wood, self.gold, self.worker, self.farm_capacity, wst,self.soldier_skill, self.score,self.operation)
+            self.name, self.era,self.home/self.home_capacity,self.home_capacity, self.food, self.wood, self.gold, self.worker, self.farm_capacity, wst,self.soldier_skill,shield_time_remain, self.score,self.operation)
         if self.name == self.first_name:
             st+="--------------------------------\n%s"%(NO_VIILAGE_NAME)
         self.log('status',1)
@@ -627,7 +645,7 @@ class tvillage:
         self.last_name = last_name
         self.dirty = True
         return
-    # -----------------------------------------------------------------=============------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # This function write all activities into database
     def log(self,*action):
         sql = "insert into log (userid,action) VALUES(%d,JSON_OBJECT %s)"%(self.userid,action)
@@ -636,12 +654,11 @@ class tvillage:
             self.db.close()
         except Exception as e:
             print(str(e))
-            print(sql)
             print("Error in logging: %d , %s"%(self.userid,action))
             self.db.close()
 
 
-    # -----------------------------------------------------------------------------=============------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     #  This function calculate the skill property depends on last activity.
     def check_skill(self):
         now = datetime.datetime.now()
@@ -652,7 +669,7 @@ class tvillage:
             self.soldier_skill = 1.0
         return
 
-    # --------------------------------------------------------------------------------=============---------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # This function reset default to village and write in database
     def reset(self):
         self.gold = DEFAULTS['gold']
